@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Studies K-8 — Project Handover Dashboard</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f172a;--surface:#1e293b;--surface2:#334155;--accent:#3b82f6;
+  --green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--purple:#a855f7;--amber:#f59e0b;--teal:#14b8a6;
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;--radius:12px;--radius-sm:8px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.6;min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(15,23,42,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(51,65,85,.5);padding:0 24px}
+.nav-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-tab{padding:14px 20px;font-size:14px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;user-select:none}
+.nav-tab:hover{color:var(--text)}.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.container{max-width:1400px;margin:0 auto;padding:24px}
+.tab-content{display:none;opacity:0;transition:opacity .3s}.tab-content.active{display:block;opacity:1}
+
+.card{background:var(--surface);border-radius:var(--radius);padding:24px;border:1px solid rgba(51,65,85,.5);margin-bottom:20px}
+.card-sm{background:var(--surface2);border-radius:var(--radius-sm);padding:16px}
+
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid-6{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.4}
+.badge-green{background:rgba(34,197,94,.15);color:#4ade80}
+.badge-red{background:rgba(239,68,68,.15);color:#f87171}
+.badge-yellow{background:rgba(245,158,11,.15);color:#fbbf24}
+.badge-blue{background:rgba(59,130,246,.15);color:#60a5fa}
+.badge-purple{background:rgba(168,85,247,.15);color:#c084fc}
+.badge-gray{background:rgba(100,116,139,.15);color:#94a3b8}
+.badge-teal{background:rgba(20,184,166,.15);color:#2dd4bf}
+
+.prog-bar{height:8px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;border-radius:4px;transition:width .5s}
+
+.stat-card{background:var(--surface);border-radius:var(--radius);padding:24px;text-align:center;border:1px solid rgba(51,65,85,.5);transition:transform .2s}
+.stat-card:hover{transform:translateY(-3px)}
+.stat-num{font-size:36px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:13px;color:var(--text2);margin-top:4px}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.stat-icon{font-size:28px;margin-bottom:8px}
+
+.flow{display:flex;align-items:center;gap:0;justify-content:center;flex-wrap:wrap;margin:24px 0}
+.flow-step{background:var(--surface2);border-radius:var(--radius-sm);padding:12px 20px;font-size:13px;font-weight:600;text-align:center}
+.flow-arrow{color:var(--text3);font-size:20px;margin:0 4px}
+.flow-step.active{background:var(--accent);color:#fff}
+
+.decision-row{padding:14px 0;border-bottom:1px solid rgba(51,65,85,.3);display:flex;gap:12px}
+.decision-num{font-weight:800;color:var(--accent);min-width:28px;font-size:18px}
+.decision-text strong{display:block;margin-bottom:2px}
+.decision-text span{font-size:13px;color:var(--text2)}
+
+.scrapped-item{padding:10px 0;border-bottom:1px solid rgba(51,65,85,.3);display:flex;gap:10px;align-items:flex-start}
+.scrapped-x{color:var(--red);font-weight:700;font-size:16px;min-width:20px}
+.scrapped-text{text-decoration:line-through;color:var(--text3);font-size:14px}
+.scrapped-reason{font-size:12px;color:var(--text2);text-decoration:none;margin-top:2px}
+
+.status-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.status-col h3{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.status-item{padding:10px 0;border-bottom:1px solid rgba(51,65,85,.2);font-size:14px;display:flex;gap:8px;align-items:flex-start}
+.status-icon{font-size:16px;flex-shrink:0;line-height:1.4}
+
+.data-table{width:100%;border-collapse:separate;border-spacing:0;font-size:14px}
+.data-table th{padding:12px 16px;text-align:left;font-weight:600;color:var(--text2);font-size:13px;border-bottom:1px solid var(--surface2);position:sticky;top:0;background:var(--surface)}
+.data-table td{padding:12px 16px;border-bottom:1px solid rgba(51,65,85,.3)}
+.data-table tr:hover td{background:rgba(51,65,85,.15)}
+
+.spov-card{background:var(--surface);border-radius:var(--radius);padding:20px;border:1px solid rgba(51,65,85,.5);border-left:3px solid var(--purple);margin-bottom:12px}
+.spov-title{font-weight:700;font-size:16px;margin-bottom:8px;color:var(--text)}
+.spov-body{font-size:14px;color:var(--text2);line-height:1.7}
+
+.eval-pass{color:#4ade80;font-weight:700}.eval-fail{color:#f87171;font-weight:700}.eval-partial{color:#fbbf24;font-weight:700}
+
+h2{font-size:24px;font-weight:800;margin-bottom:16px}
+h3{font-size:18px;font-weight:700;margin-bottom:12px}
+
+@media(max-width:1024px){.grid-3,.status-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:768px){.grid-2,.grid-3,.status-grid,.grid-6{grid-template-columns:1fr}.nav-tab{padding:12px 14px;font-size:13px}.container{padding:16px}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-tab active" data-tab="overview">Overview</div>
+    <div class="nav-tab" data-tab="decisions">Key Decisions</div>
+    <div class="nav-tab" data-tab="standards">Standards Analysis</div>
+    <div class="nav-tab" data-tab="curriculum">Curriculum Stack</div>
+    <div class="nav-tab" data-tab="apps">App Evaluations</div>
+    <div class="nav-tab" data-tab="assessment">Assessment Framework</div>
+    <div class="nav-tab" data-tab="status">What's Not Done</div>
+  </div>
+</nav>
+
+<div class="container">
+
+<!-- ==================== OVERVIEW ==================== -->
+<div class="tab-content active" id="tab-overview">
+  <div style="text-align:center;margin-bottom:32px">
+    <h1 style="font-size:36px;font-weight:800;margin-bottom:8px">Social Studies K-8: Project Handover</h1>
+    <p style="font-size:16px;color:var(--text2)">All research, decisions, and work for building Alpha's K-8 Social Studies curriculum</p>
+    <p style="font-size:14px;color:var(--text3);margin-top:4px">Owner: Tripti Khetan &mdash; Alpha Schools</p>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="grid-6" style="margin-bottom:24px">
+    <div class="stat-card"><div class="stat-icon">&#x1F9D1;&#x200D;&#x1F3EB;</div><div class="stat-num">65</div><div class="stat-label">Experts Researched</div><div class="stat-sub">Across 8 domains</div></div>
+    <div class="stat-card"><div class="stat-icon">&#x1F3DB;</div><div class="stat-num">6</div><div class="stat-label">States Compared</div><div class="stat-sub">TX, MA, NY, TN, FL, CA</div></div>
+    <div class="stat-card"><div class="stat-icon">&#x1F4CA;</div><div class="stat-num">564</div><div class="stat-label">TEKS Standards</div><div class="stat-sub">K-8 Social Studies</div></div>
+    <div class="stat-card"><div class="stat-icon">&#x2705;</div><div class="stat-num">92.5%</div><div class="stat-label">Cross-State Overlap</div><div class="stat-sub">With at least 1 other state</div></div>
+    <div class="stat-card"><div class="stat-icon">&#x1F5FA;</div><div class="stat-num">50</div><div class="stat-label">States Documented</div><div class="stat-sub">Assessment landscape</div></div>
+    <div class="stat-card"><div class="stat-icon">&#x1F4F1;</div><div class="stat-num">7</div><div class="stat-label">Apps Evaluated</div><div class="stat-sub">Against 6 criteria</div></div>
+  </div>
+
+  <!-- THE PROBLEM -->
+  <div class="card" style="border-left:3px solid var(--red)">
+    <h3 style="color:var(--red)">The Problem</h3>
+    <p style="font-size:15px;line-height:1.7;margin-bottom:12px">Building K-8 Social Studies for a multi-state autonomous learning platform faces <strong style="color:#fff">three structural problems</strong> that don't exist in math or ELA:</p>
+    <div class="grid-3" style="margin-bottom:12px">
+      <div class="card-sm" style="border-left:2px solid var(--red)"><strong style="color:var(--red)">1. No National Standards</strong><br><span style="font-size:13px;color:var(--text2)">50 different state frameworks vs. Common Core for math/ELA. No consensus on what to teach or when.</span></div>
+      <div class="card-sm" style="border-left:2px solid var(--red)"><strong style="color:var(--red)">2. Teacher-Dependent Curricula</strong><br><span style="font-size:13px;color:var(--text2)">Every published SS curriculum assumes a teacher present: read-alouds, discussions, facilitated inquiry. None are built for autonomous learning.</span></div>
+      <div class="card-sm" style="border-left:2px solid var(--red)"><strong style="color:var(--red)">3. Marginalized Subject</strong><br><span style="font-size:13px;color:var(--text2)">62% of elementary students get &lt;60 min/week of SS. 16% get zero. Time collapsed since NCLB due to tested-subject pressure.</span></div>
+    </div>
+  </div>
+
+  <!-- WHAT WE DECIDED -->
+  <div class="card" style="border-left:3px solid var(--green)">
+    <h3 style="color:var(--green)">What We Decided</h3>
+    <p style="font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:16px">After researching 65 experts, analyzing 6 states' standards, and evaluating 7 published curricula, here is the architecture:</p>
+    <div class="flow">
+      <div class="flow-step active">TEKS Backbone</div><span class="flow-arrow">&rarr;</span>
+      <div class="flow-step" style="background:var(--green);color:#fff">Core Knowledge Content</div><span class="flow-arrow">&rarr;</span>
+      <div class="flow-step">BRI Civics Supplement</div><span class="flow-arrow">&rarr;</span>
+      <div class="flow-step">State-Specific Modules</div><span class="flow-arrow">&rarr;</span>
+      <div class="flow-step" style="background:var(--purple);color:#fff">Universal-Plus Curriculum</div>
+    </div>
+    <div class="grid-2" style="margin-top:16px">
+      <div class="card-sm"><strong>Short-Term Stack</strong><br><span style="font-size:13px;color:var(--text2)">BrainPOP (instruction) + IXL-style questions (practice) + state-independent tests (assessment). Move fast without compromising quality.</span></div>
+      <div class="card-sm"><strong>Long-Term Vision</strong><br><span style="font-size:13px;color:var(--text2)">One coherent curriculum with configuration logic supporting 50 states. Modular architecture: common core + state supplements. Build once, configure many times.</span></div>
+    </div>
+  </div>
+
+  <!-- QUICK LINKS -->
+  <div class="card">
+    <h3>Source Files (in this folder)</h3>
+    <div style="font-size:14px;line-height:2">
+      <strong>01-Research/</strong><br>
+      &nbsp;&nbsp;brainlift-social-studies-k8.md &mdash; Main BrainLift (65 experts, SPOVs, knowledge tree, curriculum analysis) &mdash; 232KB<br>
+      &nbsp;&nbsp;standards-strategy.md &mdash; Why TEKS as baseline, 6-state comparison data<br>
+      &nbsp;&nbsp;short-term.md &mdash; BrainPOP + IXL instruction stack decision<br>
+      &nbsp;&nbsp;long-term-plan.md &mdash; Course architecture + Grade 3 v0.1 prototype<br>
+      &nbsp;&nbsp;open-questions.md &mdash; Unresolved questions<br><br>
+      <strong>02-Assessments/</strong><br>
+      &nbsp;&nbsp;assessments-and-tests.md &mdash; 50-state assessment landscape, multi-campus options, Grade 3-5 blueprints &mdash; 140KB<br><br>
+      <strong>03-App-Evaluations/</strong><br>
+      &nbsp;&nbsp;app-review-framework.md &mdash; 6-criterion Alpha evaluation framework + iCivics, BrainPOP, CKHG, TCI reviews &mdash; 83KB
+    </div>
+  </div>
+</div>
+
+<!-- ==================== KEY DECISIONS ==================== -->
+<div class="tab-content" id="tab-decisions">
+  <h2>Key Decisions</h2>
+  <p style="color:var(--text2);margin-bottom:24px">Every major decision made during the research phase, with rationale.</p>
+
+  <div class="card">
+    <h3>Decisions Made</h3>
+    <div class="decision-row"><div class="decision-num">1</div><div class="decision-text"><strong>Adopt TEKS as the baseline standards framework</strong><span>Only model requiring all 4 domains (history, geography, civics, economics) every year K-8 with state accountability (STAAR). Alpha has 11 TX campuses. 92.5% overlap with other states makes it the most practical, scalable option.</span></div></div>
+    <div class="decision-row"><div class="decision-num">2</div><div class="decision-text"><strong>Use Core Knowledge (CKHG) as curriculum foundation</strong><span>Content-rich, sequential K-8, cumulative spiraling design, clear content specifications. Best fit when state-specific content is removed. Requires extensive adaptation for autonomous delivery (teacher-dependent by design).</span></div></div>
+    <div class="decision-row"><div class="decision-num">3</div><div class="decision-text"><strong>BrainPOP for instruction, IXL-style for practice</strong><span>BrainPOP provides concept clarity through short videos (IXL has no SS instruction). IXL-style questions provide high-volume focused skill practice. BrainPOP assessments check exposure, not mastery &mdash; insufficient for core testing.</span></div></div>
+    <div class="decision-row"><div class="decision-num">4</div><div class="decision-text"><strong>Supplement civics with Bill of Rights Institute (BRI)</strong><span>High-quality, free, inquiry-based civics content with C3 Framework alignment. Not comprehensive K-8 but strong for constitutional literacy and government concepts.</span></div></div>
+    <div class="decision-row"><div class="decision-num">5</div><div class="decision-text"><strong>Build modular multi-state architecture (IDEA model)</strong><span>Unified core addressing shared content (~70%) + targeted state-specific modules (~30%). Proven by IDEA Public Schools (140+ campuses, 4 states) and BASIS Charter Schools. More economical than 50 separate curricula.</span></div></div>
+    <div class="decision-row"><div class="decision-num">6</div><div class="decision-text"><strong>Align Grade 3 prototype to LEAP (Louisiana) standards</strong><span>Louisiana has the most rigorous K-8 SS assessment (annual 3-8 testing with source-based tasks). Used Louisiana Student Standards (2022) with CKHG Bayou Bridges content + ABC Coursewave for government.</span></div></div>
+    <div class="decision-row"><div class="decision-num">7</div><div class="decision-text"><strong>Design assessment framework backward from STAAR Grade 8</strong><span>Created Grade 3-5 test blueprints with vertical alignment downward from the Grade 8 STAAR blueprint. Ensures students are on-track for the only tested grade in Texas.</span></div></div>
+    <div class="decision-row"><div class="decision-num">8</div><div class="decision-text"><strong>Position SS as "integrated content-literacy solution"</strong><span>Elementary SS time won't recover through advocacy alone. Integrate SS with literacy instruction so time serves dual purposes. Explicitly show literacy standards alignment to protect instructional minutes.</span></div></div>
+  </div>
+
+  <div class="card">
+    <h3>Strong Points of View (SPOVs)</h3>
+    <p style="color:var(--text2);margin-bottom:16px;font-size:14px">These are the project's foundational design principles. Non-negotiable.</p>
+    <div class="spov-card"><div class="spov-title">Skills-based architecture breaks social studies narrative coherence</div><div class="spov-body">Unlike math, SS depends on narrative relationships. The Declaration of Independence can't be understood without colonial development, taxation, and revolutionary conflict. Decomposing into isolated skills (IXL-style) breaks the meaning that makes historical reasoning possible.</div></div>
+    <div class="spov-card"><div class="spov-title">Standards are NOT a curriculum</div><div class="spov-body">Standards list what must be covered, not how understanding builds over time. Treating standards order as instructional order produces fragmented, non-chronological, cognitively incoherent instruction. Design curriculum first, then map standards back for compliance.</div></div>
+    <div class="spov-card"><div class="spov-title">Domains are lenses, not sequences</div><div class="spov-body">History, geography, civics, economics are analytical lenses applied to human experience. Young learners experience people living together, solving problems, making rules, doing work, and changing over time. Domains make sense inside that narrative, not as separate silos.</div></div>
+    <div class="spov-card"><div class="spov-title">Coherence scales better than customization</div><div class="spov-body">High-performing networks succeed by holding one coherent curriculum constant and mapping standards onto it &mdash; not by creating fragmented state-specific versions. A strong curriculum tolerates standards variation. A standards-driven curriculum collapses under it.</div></div>
+    <div class="spov-card"><div class="spov-title">If inquiry requires a teacher to animate it, it is not scalable</div><div class="spov-body">Core at Alpha means a student can practice independently, repeatedly, and receive objective feedback without an adult discussion leader. If not, the resource cannot be core regardless of quality.</div></div>
+  </div>
+
+  <div class="card">
+    <h3 style="color:var(--red)">Scrapped / Rejected Approaches</h3>
+    <div class="scrapped-item"><div class="scrapped-x">&times;</div><div><div class="scrapped-text">Building 50 separate state-specific curricula</div><div class="scrapped-reason">States converge on ~70% of content. Organizational disagreement, not content disagreement. Modular architecture solves this.</div></div></div>
+    <div class="scrapped-item"><div class="scrapped-x">&times;</div><div><div class="scrapped-text">IXL-style skills-based approach for Social Studies</div><div class="scrapped-reason">Works for math where concepts are independent. SS depends on narrative relationships &mdash; decomposing into isolated skills breaks meaning.</div></div></div>
+    <div class="scrapped-item"><div class="scrapped-x">&times;</div><div><div class="scrapped-text">Using standards order as curriculum sequence</div><div class="scrapped-reason">Standards list coverage requirements, not learning progressions. Produces fragmented instruction.</div></div></div>
+    <div class="scrapped-item"><div class="scrapped-x">&times;</div><div><div class="scrapped-text">inquirED as autonomous learning platform</div><div class="scrapped-reason">Digital but fundamentally teacher-dependent. Inquiry process assumes teacher-led discussion, not student self-pacing.</div></div></div>
+    <div class="scrapped-item"><div class="scrapped-x">&times;</div><div><div class="scrapped-text">TCI Social Studies Alive for solo learners</div><div class="scrapped-reason">Core pedagogy is collaborative (simulations, role-plays, group debates). Hardest to adapt for asynchronous learning.</div></div></div>
+    <div class="scrapped-item"><div class="scrapped-x">&times;</div><div><div class="scrapped-text">Studies Weekly as primary curriculum</div><div class="scrapped-reason">Accessible format but too shallow. Content coverage superficial, pedagogy is read-and-answer, no cumulative knowledge building.</div></div></div>
+    <div class="scrapped-item"><div class="scrapped-x">&times;</div><div><div class="scrapped-text">BrainPOP as core assessment layer</div><div class="scrapped-reason">Checks exposure, not mastery. Not enough repetitions to diagnose gaps or build fluency. Fine as exit checks, not core practice.</div></div></div>
+  </div>
+</div>
+
+<!-- ==================== STANDARDS ANALYSIS ==================== -->
+<div class="tab-content" id="tab-standards">
+  <h2>Standards Analysis</h2>
+  <p style="color:var(--text2);margin-bottom:24px">Quantitative comparison of K-8 social studies standards across 6 states. TEKS (Texas) used as baseline.</p>
+
+  <!-- OVERLAP VISUAL -->
+  <div class="card" style="border-left:3px solid var(--green)">
+    <h3 style="color:var(--green)">TEKS Overlap with Other States</h3>
+    <div style="margin:20px 0">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+        <span style="font-size:14px;min-width:120px;color:var(--text2)">Shared (92.5%)</span>
+        <div class="prog-bar" style="flex:1"><div class="prog-fill" style="width:92.5%;background:var(--green)"></div></div>
+        <span style="font-size:14px;font-weight:700;color:var(--green)">530 standards</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:14px;min-width:120px;color:var(--text2)">TX-only (7.5%)</span>
+        <div class="prog-bar" style="flex:1"><div class="prog-fill" style="width:7.5%;background:var(--yellow)"></div></div>
+        <span style="font-size:14px;font-weight:700;color:var(--yellow)">34 standards</span>
+      </div>
+    </div>
+    <p style="font-size:13px;color:var(--text3)">Of 564 total TEKS K-8 standards, 92.5% align with at least one other state. Only 34 are unique to Texas.</p>
+  </div>
+
+  <!-- WHY TEKS -->
+  <div class="card" style="border-left:3px solid var(--accent)">
+    <h3 style="color:var(--accent)">Why TEKS Won as Baseline</h3>
+    <div class="grid-2" style="margin-bottom:12px">
+      <div class="card-sm"><strong>All 4 domains every year K-8</strong><br><span style="font-size:13px;color:var(--text2)">Only state requiring history, geography, civics, AND economics at every grade level. Others skip domains in certain years.</span></div>
+      <div class="card-sm"><strong>Accountability via STAAR</strong><br><span style="font-size:13px;color:var(--text2)">Grade 8 STAAR + U.S. History EOC in high school. Most states have no SS tests below grade 8.</span></div>
+      <div class="card-sm"><strong>11 Alpha campuses in Texas</strong><br><span style="font-size:13px;color:var(--text2)">Largest state footprint. TEKS alignment is compliance for the majority of campuses.</span></div>
+      <div class="card-sm"><strong>92.5% overlap makes it scalable</strong><br><span style="font-size:13px;color:var(--text2)">Most TEKS content appears in other states too. Add state supplements for the remaining ~7.5%.</span></div>
+    </div>
+  </div>
+
+  <!-- 6-STATE COMPARISON -->
+  <div class="card">
+    <h3>6-State Comparison</h3>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:16px">States selected for rigor, accountability, and diversity of approaches.</p>
+    <div style="overflow-x:auto">
+    <table class="data-table">
+      <thead><tr><th>State</th><th>Why Selected</th><th>K-8 SS Test?</th><th>Organization</th><th>Standards Beyond TEKS</th><th>Key Strength</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Texas (TEKS)</strong></td><td>Baseline &mdash; 11 campuses</td><td>Grade 8 STAAR</td><td>Integrated annual</td><td>&mdash;</td><td>All 4 domains every year + accountability</td></tr>
+        <tr><td><strong>Massachusetts</strong></td><td>Top-tier rigor, strong NAEP</td><td>Grade 5, 7</td><td>Discipline-by-grade</td><td>+39% unmapped content</td><td>Deep inquiry, civic project requirement</td></tr>
+        <tr><td><strong>New York</strong></td><td>Inquiry-infused, C3 aligned</td><td>None (Regents in HS)</td><td>Hybrid</td><td>Significant</td><td>5 social studies practices integrated throughout</td></tr>
+        <tr><td><strong>Tennessee</strong></td><td>Annual testing 3-8</td><td>Grades 3-8 annually</td><td>Discipline-by-grade</td><td>+37% unmapped content</td><td>Strongest K-8 testing accountability</td></tr>
+        <tr><td><strong>Florida</strong></td><td>Civics EOC, accountability</td><td>Grade 7 Civics EOC</td><td>Discipline-by-grade</td><td>+42% unmapped content</td><td>Civics depth + required EOC exam</td></tr>
+        <tr><td><strong>California</strong></td><td>Inclusive framework, diversity</td><td>None</td><td>Integrated annual</td><td>Significant</td><td>Most inclusive perspectives, diverse narratives</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- STATE ORG MODELS -->
+  <div class="card">
+    <h3>State Organization Models</h3>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:16px">How states structure K-8 SS across grades. This is the key architectural difference &mdash; not content, but organization.</p>
+    <div class="grid-3">
+      <div class="card-sm" style="border-left:3px solid var(--accent)"><div style="font-size:28px;font-weight:800;color:var(--accent)">18</div><strong>Discipline-by-Grade</strong><br><span style="font-size:13px;color:var(--text2)">One domain per year (e.g., all history in 5th, all geography in 6th). Allows depth but risks gaps.</span></div>
+      <div class="card-sm" style="border-left:3px solid var(--green)"><div style="font-size:28px;font-weight:800;color:var(--green)">24</div><strong>Integrated Annual</strong><br><span style="font-size:13px;color:var(--text2)">All 4 disciplines every year. Ensures exposure but challenges coverage breadth. TEKS uses this model.</span></div>
+      <div class="card-sm" style="border-left:3px solid var(--yellow)"><div style="font-size:28px;font-weight:800;color:var(--yellow)">8</div><strong>Hybrid</strong><br><span style="font-size:13px;color:var(--text2)">Mix of both approaches. Some grades focused, others integrated.</span></div>
+    </div>
+    <p style="font-size:13px;color:var(--text3);margin-top:12px">Our modular architecture supports both: units deep enough for discipline-focused use, organized for integrated sequence. Build once, configure for either model.</p>
+  </div>
+
+  <!-- UNMAPPED CONTENT -->
+  <div class="card">
+    <h3>Content Other States Have That TEKS Doesn't</h3>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:16px">743 standards from other states don't map to TEKS. These represent areas for the "Universal-Plus" expansion.</p>
+    <div style="margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px"><span style="min-width:120px;font-size:14px">Florida</span><div class="prog-bar" style="flex:1"><div class="prog-fill" style="width:42%;background:var(--red)"></div></div><span style="font-size:14px;font-weight:600;color:var(--red)">+42%</span></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px"><span style="min-width:120px;font-size:14px">Massachusetts</span><div class="prog-bar" style="flex:1"><div class="prog-fill" style="width:39%;background:var(--yellow)"></div></div><span style="font-size:14px;font-weight:600;color:var(--yellow)">+39%</span></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px"><span style="min-width:120px;font-size:14px">Tennessee</span><div class="prog-bar" style="flex:1"><div class="prog-fill" style="width:37%;background:var(--yellow)"></div></div><span style="font-size:14px;font-weight:600;color:var(--yellow)">+37%</span></div>
+    </div>
+    <p style="font-size:13px;color:var(--text3)">~22% of all reviewed standards are state-specific (local history, identity content) and were excluded as non-transferable.</p>
+  </div>
+</div>
+
+<!-- ==================== CURRICULUM STACK ==================== -->
+<div class="tab-content" id="tab-curriculum">
+  <h2>Curriculum Stack</h2>
+
+  <!-- SHORT TERM -->
+  <div class="card" style="border-left:3px solid var(--green)">
+    <h3 style="color:var(--green)">Short-Term Instruction Stack (G3-G5)</h3>
+    <p style="font-size:14px;color:var(--text2);margin-bottom:16px">Separate instruction from practice/testing. Move fast without building from scratch.</p>
+    <div class="grid-3">
+      <div class="card-sm" style="border-top:3px solid var(--accent)"><strong>Instruction</strong><br><span style="font-size:13px;color:var(--text2)">BrainPOP lesson videos as primary anchor. Clear, concept-level instruction. IXL has no SS instruction.</span></div>
+      <div class="card-sm" style="border-top:3px solid var(--green)"><strong>Practice &amp; Mastery</strong><br><span style="font-size:13px;color:var(--text2)">IXL-style questions: high volume, focused skill repetition, progressive difficulty. Gold standard for skill practice.</span></div>
+      <div class="card-sm" style="border-top:3px solid var(--purple)"><strong>Assessment</strong><br><span style="font-size:13px;color:var(--text2)">State-independent tests pulling from overlapping content across frameworks. Emphasize reading comprehension + source interpretation.</span></div>
+    </div>
+  </div>
+
+  <!-- LONG TERM -->
+  <div class="card" style="border-left:3px solid var(--purple)">
+    <h3 style="color:var(--purple)">Long-Term: Our Curriculum</h3>
+    <div class="flow" style="margin-bottom:16px">
+      <div class="flow-step active">CKHG Textbooks<br><span style="font-size:11px;color:rgba(255,255,255,.7)">Base content</span></div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-step">BRI Civics<br><span style="font-size:11px;color:var(--text3)">Supplement</span></div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-step">State Modules<br><span style="font-size:11px;color:var(--text3)">TX, CA, FL, NY, TN</span></div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-step" style="background:var(--purple);color:#fff">Universal-Plus<br><span style="font-size:11px;color:rgba(255,255,255,.7)">Expand with other states</span></div>
+    </div>
+  </div>
+
+  <!-- ADAPTATION CHALLENGES -->
+  <div class="card">
+    <h3>CKHG Adaptation Challenges for Autonomous Delivery</h3>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:16px">Core Knowledge is the best content but deeply teacher-dependent. 6 challenges identified with solutions.</p>
+    <div style="overflow-x:auto">
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Challenge</th><th>Solution</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Relies on teacher-led storytelling</td><td>Break into small standalone learning chunks with clear objectives + guiding questions</td></tr>
+        <tr><td>2</td><td>Text too long for independent reading</td><td>Chunk, scaffold, add TTS with synchronized highlighting</td></tr>
+        <tr><td>3</td><td>Activities assume in-person interaction</td><td>Reimagine as drag-drop, timelines, hotspots, MC, short written responses</td></tr>
+        <tr><td>4</td><td>Vocabulary embedded in teacher moves</td><td>Clickable cards, rollover definitions, pronunciation audio, auto-checks</td></tr>
+        <tr><td>5</td><td>No matching video content exists</td><td>Use broader videos with guiding questions, clipped timestamps, occasional no-video lessons</td></tr>
+        <tr><td>6</td><td>Assumes background knowledge</td><td>Build scaffolds into lesson flow; prerequisite tracking</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- GRADE 3 PROTOTYPE -->
+  <div class="card" style="border-left:3px solid var(--yellow)">
+    <h3><span class="badge badge-yellow">ON HOLD</span> &nbsp;Grade 3 Course v0.1</h3>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:12px">Most advanced prototype. Unit 1 Lesson 1 mapped item-by-item with content sources.</p>
+    <div class="grid-2">
+      <div class="card-sm"><strong>Standards:</strong> Louisiana Student Standards (2022)<br><strong>Assessment:</strong> LEAP Grade 3<br><strong>Primary Content:</strong> CKHG Bayou Bridges<br><strong>Secondary:</strong> ABC Coursewave (govt)</div>
+      <div class="card-sm"><strong>Unit 1:</strong> The Founding of the USA<br><strong>Status:</strong> Lesson 1 mapped (12+ items, 5 blocks)<br><strong>Unit 2:</strong> Constitutional Convention (objectives only)<br><strong>Remaining:</strong> Not started</div>
+    </div>
+    <p style="font-size:13px;color:var(--text3);margin-top:12px"><strong>Blocks built:</strong> Understanding Colonial Life &rarr; Taxes &amp; Protests &rarr; Colonies Unite &rarr; Independence Movement &rarr; Turning Points of War &rarr; Symbols of a New Nation. Each item specifies content source (CKHG page or ABC page), format, and interactive elements.</p>
+  </div>
+</div>
+
+<!-- ==================== APP EVALUATIONS ==================== -->
+<div class="tab-content" id="tab-apps">
+  <h2>App &amp; Resource Evaluations</h2>
+
+  <!-- FRAMEWORK -->
+  <div class="card" style="border-left:3px solid var(--accent)">
+    <h3 style="color:var(--accent)">Alpha Evaluation Framework (6 Gatekeeper Criteria)</h3>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:16px">A resource fails for core use if it does not pass ALL of these. Non-negotiable test: <strong style="color:#fff">"If we removed the teacher from the room, would learning still occur?"</strong></p>
+    <div class="grid-3">
+      <div class="card-sm"><strong>1. Independence &amp; Scalability</strong><br><span style="font-size:13px;color:var(--text2)">Can students progress independently with minimal structured support?</span></div>
+      <div class="card-sm"><strong>2. Cognitive Load Management</strong><br><span style="font-size:13px;color:var(--text2)">One complex skill at a time, scaffolded progressively?</span></div>
+      <div class="card-sm"><strong>3. Decision &amp; Application</strong><br><span style="font-size:13px;color:var(--text2)">Students make decisions using evidence, not just consume?</span></div>
+      <div class="card-sm"><strong>4. Retrieval &amp; Practice</strong><br><span style="font-size:13px;color:var(--text2)">Active recall and deliberate practice, not just exposure?</span></div>
+      <div class="card-sm"><strong>5. Objective Assessability</strong><br><span style="font-size:13px;color:var(--text2)">Clear correctness criteria, not "vibes-based" evaluation?</span></div>
+      <div class="card-sm"><strong>6. Knowledge-First &amp; Narrative Coherence</strong><br><span style="font-size:13px;color:var(--text2)">Sequential domain knowledge preserved with causal/chronological relationships?</span></div>
+    </div>
+  </div>
+
+  <!-- EVALUATION TABLE -->
+  <div class="card">
+    <h3>Resource Evaluations</h3>
+    <div style="overflow-x:auto">
+    <table class="data-table">
+      <thead><tr><th>Resource</th><th>Independence</th><th>Cog Load</th><th>Decision</th><th>Retrieval</th><th>Assessable</th><th>Knowledge-First</th><th>Classification</th></tr></thead>
+      <tbody>
+        <tr><td><strong>iCivics</strong></td><td class="eval-pass">Pass</td><td class="eval-pass">Pass</td><td class="eval-pass">Pass</td><td class="eval-partial">Partial</td><td class="eval-pass">Pass</td><td class="eval-partial">Partial</td><td><span class="badge badge-green">CORE (civics)</span></td></tr>
+        <tr><td><strong>BrainPOP</strong></td><td class="eval-pass">Pass</td><td class="eval-pass">Pass</td><td class="eval-partial">Partial</td><td class="eval-partial">Partial</td><td class="eval-pass">Pass</td><td class="eval-fail">Fail</td><td><span class="badge badge-yellow">SUPPLEMENT</span></td></tr>
+        <tr><td><strong>Core Knowledge (CKHG)</strong></td><td class="eval-fail">Fail*</td><td class="eval-pass">Pass</td><td class="eval-partial">Partial</td><td class="eval-pass">Pass</td><td class="eval-pass">Pass</td><td class="eval-pass">Pass</td><td><span class="badge badge-blue">BEST CONTENT*</span></td></tr>
+        <tr><td><strong>inquirED</strong></td><td class="eval-fail">Fail</td><td class="eval-pass">Pass</td><td class="eval-pass">Pass</td><td class="eval-partial">Partial</td><td class="eval-partial">Partial</td><td class="eval-partial">Partial</td><td><span class="badge badge-gray">MISALIGNED</span></td></tr>
+        <tr><td><strong>TCI (Social Studies Alive)</strong></td><td class="eval-fail">Fail</td><td class="eval-pass">Pass</td><td class="eval-pass">Pass</td><td class="eval-partial">Partial</td><td class="eval-partial">Partial</td><td class="eval-partial">Partial</td><td><span class="badge badge-gray">MISALIGNED</span></td></tr>
+        <tr><td><strong>Studies Weekly</strong></td><td class="eval-pass">Pass</td><td class="eval-pass">Pass</td><td class="eval-fail">Fail</td><td class="eval-fail">Fail</td><td class="eval-pass">Pass</td><td class="eval-fail">Fail</td><td><span class="badge badge-gray">MISALIGNED</span></td></tr>
+        <tr><td><strong>BRI (Bill of Rights)</strong></td><td class="eval-pass">Pass</td><td class="eval-pass">Pass</td><td class="eval-pass">Pass</td><td class="eval-pass">Pass</td><td class="eval-pass">Pass</td><td class="eval-partial">Partial</td><td><span class="badge badge-teal">SUPPLEMENT (civics)</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p style="font-size:13px;color:var(--text3);margin-top:12px">* CKHG has the best content but is deeply teacher-dependent. Requires extensive adaptation for autonomous delivery. License content, rebuild delivery system.</p>
+  </div>
+
+  <!-- KEY TAKEAWAY -->
+  <div class="card" style="border-left:3px solid var(--yellow)">
+    <h3 style="color:var(--yellow)">Key Takeaway</h3>
+    <p style="font-size:15px;line-height:1.7;color:var(--text2)"><strong style="color:#fff">"Digital curriculum" means digitized teacher tools, not autonomous systems.</strong> Most "digital" curricula deliver teacher-facing tools (dashboards, assignment flows) &mdash; not student-driven learning. inquirED, TCI, even CKHG's digital offerings all assume teacher-present. Evaluate by asking: Can students complete independently? Are assessments auto-graded? Does pacing allow individual progression? Most fail these tests.</p>
+  </div>
+</div>
+
+<!-- ==================== ASSESSMENT FRAMEWORK ==================== -->
+<div class="tab-content" id="tab-assessment">
+  <h2>Assessment Framework</h2>
+
+  <!-- GRADE 3-5 BLUEPRINTS -->
+  <div class="card" style="border-left:3px solid var(--accent)">
+    <h3 style="color:var(--accent)">Grade 3-5 Test Blueprints</h3>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:16px">Designed with vertical alignment downward from STAAR Grade 8. Increasing cognitive demand across grades.</p>
+    <div style="overflow-x:auto">
+    <table class="data-table">
+      <thead><tr><th></th><th>Grade 3</th><th>Grade 4</th><th>Grade 5</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Items</strong></td><td>20-25</td><td>25-30</td><td>30-35</td></tr>
+        <tr><td><strong>Time</strong></td><td>35-40 min</td><td>45-50 min</td><td>50-60 min</td></tr>
+        <tr><td><strong>History</strong></td><td>35%</td><td>35%</td><td>40%</td></tr>
+        <tr><td><strong>Geography</strong></td><td>25%</td><td>25%</td><td>25%</td></tr>
+        <tr><td><strong>Govt/Citizenship</strong></td><td>20%</td><td>20%</td><td>20%</td></tr>
+        <tr><td><strong>Economics</strong></td><td>20%</td><td>20%</td><td>15%</td></tr>
+        <tr><td><strong>DOK 1 (Recall)</strong></td><td>40%</td><td>35%</td><td>30%</td></tr>
+        <tr><td><strong>DOK 2 (Skills)</strong></td><td>40%</td><td>45%</td><td>45%</td></tr>
+        <tr><td><strong>DOK 3 (Strategic)</strong></td><td>20%</td><td>20%</td><td>25%</td></tr>
+        <tr><td><strong>Selected Response</strong></td><td>60%</td><td>55%</td><td>50%</td></tr>
+        <tr><td><strong>Tech-Enhanced</strong></td><td>40%</td><td>45%</td><td>50%</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p style="font-size:13px;color:var(--text3);margin-top:12px">Grade 5 includes DBQ-lite, cause-effect diagrams, multi-step scenarios. Reliability targets: G3 &alpha;&ge;.75, G4 &alpha;&ge;.78, G5 &alpha;&ge;.80</p>
+  </div>
+
+  <!-- STATES WITH TESTS -->
+  <div class="card">
+    <h3>States with K-8 Social Studies Tests</h3>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:16px">Only 15 of 50 states test K-8 social studies. Most have no assessment below high school.</p>
+    <div style="overflow-x:auto">
+    <table class="data-table">
+      <thead><tr><th>State</th><th>Grades Tested</th><th>Key Feature</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Louisiana</strong></td><td>3, 5, 8</td><td>Most rigorous: source-based sets + constructed response</td></tr>
+        <tr><td><strong>Tennessee</strong></td><td>3-8 annually</td><td>Only state testing every grade 3-8</td></tr>
+        <tr><td><strong>Texas</strong></td><td>8 (STAAR)</td><td>New tech-enhanced items (hot spot, drag-drop, constructed response)</td></tr>
+        <tr><td><strong>Virginia</strong></td><td>4, 8</td><td>SOL tests with tech-enhanced items</td></tr>
+        <tr><td><strong>Wisconsin</strong></td><td>4, 8</td><td>Forward Exam: MC + tech-enhanced</td></tr>
+        <tr><td><strong>Georgia</strong></td><td>5, 8</td><td>Milestones: MC + constructed response</td></tr>
+        <tr><td><strong>Michigan</strong></td><td>5, 8</td><td>M-STEP: MC + tech-enhanced, no essays</td></tr>
+        <tr><td><strong>Kentucky</strong></td><td>5, 8</td><td>MC + extended response, C3 influenced</td></tr>
+        <tr><td><strong>Indiana</strong></td><td>5, 7</td><td>ILEARN: MC + tech-enhanced</td></tr>
+        <tr><td><strong>Florida</strong></td><td>7 (Civics EOC)</td><td>48-item all-MC civics exam</td></tr>
+        <tr><td><strong>Colorado</strong></td><td>4, 7 (sampling)</td><td>Tests only a sample of schools on rotation</td></tr>
+        <tr><td><strong>Delaware</strong></td><td>4-8 (new 2025)</td><td>Through-year design with multiple administrations</td></tr>
+        <tr><td><strong>Maryland</strong></td><td>8</td><td>New 2023: includes Evidence-Based Argument Set task</td></tr>
+        <tr><td><strong>Kansas</strong></td><td>6, 8 (biennial)</td><td>Performance-based: inquiry projects scored with state rubric</td></tr>
+        <tr><td><strong>South Carolina</strong></td><td>5, 7</td><td>MC aligned to SC standards</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- MULTI-CAMPUS OPTIONS -->
+  <div class="card">
+    <h3>Multi-Campus Standardized Assessment Options</h3>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:16px">For consistent measurement across Alpha campuses in different states.</p>
+    <div style="overflow-x:auto">
+    <table class="data-table">
+      <thead><tr><th>Test</th><th>SS Subtest?</th><th>Grades</th><th>Type</th><th>Format</th><th>Verdict</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Iowa Assessments (ITBS)</strong></td><td class="eval-pass">Yes</td><td>3-8</td><td>Norm-referenced</td><td>MC, paper/online</td><td><span class="badge badge-green">Best option</span></td></tr>
+        <tr><td><strong>Stanford-10 (SAT-10)</strong></td><td class="eval-pass">Yes</td><td>3-8</td><td>Norm-referenced</td><td>MC, untimed</td><td><span class="badge badge-blue">Good option</span></td></tr>
+        <tr><td><strong>TerraNova 3</strong></td><td class="eval-pass">Yes</td><td>1-12</td><td>Norm-referenced</td><td>MC + constructed response</td><td><span class="badge badge-blue">Good option</span></td></tr>
+        <tr><td><strong>NWEA MAP</strong></td><td class="eval-fail">NO</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td><span class="badge badge-red">No SS component</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- BROKEN SYSTEM -->
+  <div class="card" style="border-left:3px solid var(--red)">
+    <h3 style="color:var(--red)">Current Assessment System is Broken</h3>
+    <div class="grid-2">
+      <div>
+        <p style="font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:12px"><strong style="color:#fff">Problems identified:</strong></p>
+        <ul style="font-size:13px;color:var(--text2);line-height:2;padding-left:20px">
+          <li>Tests built manually in Edulastic, item-by-item</li>
+          <li>No framework enforcing domain balance, rigor, item types</li>
+          <li>Students tested on content they were never taught</li>
+          <li>Each new test introduces different standards &mdash; "moving target"</li>
+          <li>Hole-filling broken: missed standards never retested</li>
+        </ul>
+      </div>
+      <div>
+        <p style="font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:12px"><strong style="color:#fff">Solution designed (on hold):</strong></p>
+        <ul style="font-size:13px;color:var(--text2);line-height:2;padding-left:20px">
+          <li>Centralized question bank with sourced questions only</li>
+          <li>Framework enforcement: domain, DOK, item type, coverage</li>
+          <li>Instruction &rarr; assessment alignment (question &rarr; lesson &rarr; standard)</li>
+          <li>Stable, reusable test structures (same standards reappear)</li>
+          <li>Framework-agnostic, standards-agnostic, content-source-agnostic</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== WHAT'S NOT DONE ==================== -->
+<div class="tab-content" id="tab-status">
+  <h2>What's Done, What's Not</h2>
+
+  <div class="status-grid">
+    <div class="status-col">
+      <h3 style="color:var(--green)"><span class="status-icon">&#x2705;</span> Done</h3>
+      <div class="status-item"><span class="status-icon">&#x2705;</span> 65 experts catalogued across 8 domains</div>
+      <div class="status-item"><span class="status-icon">&#x2705;</span> 6-state standards overlap analysis (quantitative)</div>
+      <div class="status-item"><span class="status-icon">&#x2705;</span> TEKS selected as baseline with rationale</div>
+      <div class="status-item"><span class="status-icon">&#x2705;</span> CKHG selected as curriculum foundation</div>
+      <div class="status-item"><span class="status-icon">&#x2705;</span> Short-term instruction stack defined</div>
+      <div class="status-item"><span class="status-icon">&#x2705;</span> Long-term curriculum architecture designed</div>
+      <div class="status-item"><span class="status-icon">&#x2705;</span> 7 apps evaluated against 6 criteria</div>
+      <div class="status-item"><span class="status-icon">&#x2705;</span> Grade 3-5 assessment blueprints created</div>
+      <div class="status-item"><span class="status-icon">&#x2705;</span> 50-state assessment landscape documented</div>
+      <div class="status-item"><span class="status-icon">&#x2705;</span> Multi-campus assessment options evaluated</div>
+      <div class="status-item"><span class="status-icon">&#x2705;</span> Assessment system problems diagnosed</div>
+      <div class="status-item"><span class="status-icon">&#x2705;</span> Grade 3 Unit 1 Lesson 1 mapped item-by-item</div>
+      <div class="status-item"><span class="status-icon">&#x2705;</span> Article design research (UX for Grade 3)</div>
+      <div class="status-item"><span class="status-icon">&#x2705;</span> 6 CKHG adaptation challenges + solutions</div>
+      <div class="status-item"><span class="status-icon">&#x2705;</span> SPOVs and design principles established</div>
+      <div class="status-item"><span class="status-icon">&#x2705;</span> Standards QC framework (10-point scoring)</div>
+      <div class="status-item"><span class="status-icon">&#x2705;</span> Knowledge tree: Category 1 (Field) + Category 2 (History) + Category 4 (Curriculum)</div>
+    </div>
+    <div class="status-col">
+      <h3 style="color:var(--yellow)"><span class="status-icon">&#x1F6A7;</span> On Hold / Partial</h3>
+      <div class="status-item"><span class="status-icon">&#x1F6A7;</span> Grade 3 course v0.1 (Unit 1 partial, Unit 2 objectives only)</div>
+      <div class="status-item"><span class="status-icon">&#x1F6A7;</span> Automated assessment system (designed, not built)</div>
+      <div class="status-item"><span class="status-icon">&#x1F6A7;</span> Knowledge tree: Category 2 Geography, Civics, Economics (headers only)</div>
+      <div class="status-item"><span class="status-icon">&#x1F6A7;</span> Multi-campus assessment decision (Iowa vs Stanford-10 vs TerraNova)</div>
+      <div class="status-item"><span class="status-icon">&#x1F6A7;</span> CK licensing decision (license vs. use scope as model)</div>
+    </div>
+    <div class="status-col">
+      <h3 style="color:var(--red)"><span class="status-icon">&#x274C;</span> Not Started</h3>
+      <div class="status-item"><span class="status-icon">&#x274C;</span> Category 3: Pedagogy research (placeholder)</div>
+      <div class="status-item"><span class="status-icon">&#x274C;</span> Grade 4-8 course design</div>
+      <div class="status-item"><span class="status-icon">&#x274C;</span> State-specific modules (architecture designed, no content)</div>
+      <div class="status-item"><span class="status-icon">&#x274C;</span> Standards auto-mapping system</div>
+      <div class="status-item"><span class="status-icon">&#x274C;</span> Automated essay scoring for SS writing</div>
+      <div class="status-item"><span class="status-icon">&#x274C;</span> Content restriction navigation strategy</div>
+      <div class="status-item"><span class="status-icon">&#x274C;</span> Building any content in an LMS</div>
+    </div>
+  </div>
+
+  <!-- ADVICE -->
+  <div class="card" style="border-left:3px solid var(--accent);margin-top:24px">
+    <h3 style="color:var(--accent)">For Whoever Picks This Up</h3>
+    <div style="font-size:14px;color:var(--text2);line-height:2">
+      1. <strong style="color:#fff">Don't start from scratch.</strong> 237K+ words of research. Read the SPOVs first.<br>
+      2. <strong style="color:#fff">TEKS-as-backbone is validated</strong> by overlap analysis (92.5%) + multi-state network examples (IDEA, BASIS).<br>
+      3. <strong style="color:#fff">Core Knowledge is the best content</strong> for autonomous learning IF you invest in adaptation (TTS, chunking, vocab scaffolds).<br>
+      4. <strong style="color:#fff">Assessment system is the most urgent gap.</strong> Manual creation is broken. Automated framework spec exists.<br>
+      5. <strong style="color:#fff">Grade 3 is the most advanced prototype.</strong> Use Unit 1 Lesson 1 as template for other grades.<br>
+      6. <strong style="color:#fff">"Digital" &ne; "autonomous."</strong> Most tools assume teacher-present. True autonomous requires different design.<br>
+      7. <strong style="color:#fff">Literacy integration is strategic survival.</strong> Position SS as "integrated content-literacy solution."
+    </div>
+  </div>
+
+  <!-- GOOGLE DOCS -->
+  <div class="card">
+    <h3>External References</h3>
+    <p style="font-size:14px;color:var(--text2);line-height:2">
+      Standards analysis doc: <a href="https://docs.google.com/document/d/18ZVvjCDOELukIshUXn37heaqAAYfAmd8bFz5Zk51NVE/edit" target="_blank">Google Doc</a><br>
+      Central question bank: <a href="https://drive.google.com/drive/folders/1GfU3wEggTB62c5oQ8zgqGd1W_Vzce7lz" target="_blank">Google Drive folder</a>
+    </p>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+document.querySelectorAll('.nav-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-'+tab.dataset.tab).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
