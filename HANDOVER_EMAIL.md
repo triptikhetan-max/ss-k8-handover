@@ -11,8 +11,9 @@ https://triptikhetan-max.github.io/ss-k8-handover/
 
 7 tabs: Overview, Key Decisions, Standards Analysis, Curriculum Stack, App Evaluations, Assessment Framework, and What's Not Done.
 
-**WorkFlowy (full research + details):**
-If you need the deep-dive content behind any decision, the full BrainLift lives in WorkFlowy. Ask me for the link.
+**WorkFlowy (full research + thought process):**
+https://workflowy.com/#/3a3ee65e7a25
+All the research, all the details, all the relevant document links, and the entire thought process.
 
 ---
 
